@@ -12,7 +12,7 @@ project(HttpNorthC)
 # If no -D options are given and FOGLAMP_ROOT environment variable is set
 # then FogLAMP libraries and header files are pulled from FOGLAMP_ROOT path.
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -O0")
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3")
 
 # Set plugin type (south, north, filter)
 set(PLUGIN_TYPE "north")
