@@ -114,4 +114,5 @@ Cleaning the Package Folder
 ===========================
 
 Use the ``clean`` option to remove all the old packages and the files used to make the package.
+
 Use the ``cleanall`` option to remove all the packages and the files used to make the package.
