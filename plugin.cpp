@@ -41,7 +41,7 @@ using namespace std;
 				"\"type\": \"string\", \"default\": \".[]\" }"
 
 #define HTTP_NORTH_PLUGIN_DESC "\"plugin\": {\"description\": \"HTTP North C Plugin\", " \
-				"\"type\": \"string\", \"default\": \"" PLUGIN_NAME " \", \"readonly\": \"true\"}"
+				"\"type\": \"string\", \"default\": \"" PLUGIN_NAME "\", \"readonly\": \"true\"}"
 
 #define PLUGIN_DEFAULT_CONFIG_INFO "{" HTTP_NORTH_PLUGIN_DESC ", " PLUGIN_DEFAULT_CONFIG "}"
 
