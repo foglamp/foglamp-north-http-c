@@ -18,15 +18,12 @@
 
 using namespace std;
 
+#define PLUGIN_NAME "HttpNorthC"
+
 /**
  * Plugin specific default configuration
  */
-#define PLUGIN_DEFAULT_CONFIG "{ " \
-			"\"plugin\": { " \
-				"\"description\": \"HTTP North C Plugin\", " \
-				"\"type\": \"string\", " \
-				"\"default\": \"http-north\" }, " \
-			"\"URL\": { " \
+#define PLUGIN_DEFAULT_CONFIG "\"URL\": { " \
 				"\"description\": \"The URL of the HTTP Connector to send data to\", " \
 				"\"type\": \"string\", " \
 				"\"default\": \"http://localhost:6683/sensor-reading\" }, " \
@@ -35,8 +32,18 @@ using namespace std;
 				"\"type\": \"integer\", \"default\": \"10\" }, " \
 			"\"verifySSL\": { " \
         			"\"description\": \"Verify SSL certificate\", " \
-				"\"type\": \"boolean\", \"default\": \"False\" } " \
-		" }"
+				"\"type\": \"boolean\", \"default\": \"False\" }, " \
+			"\"applyFilter\": { " \
+        			"\"description\": \"Whether to apply filter before processing the data\", " \
+				"\"type\": \"boolean\", \"default\": \"False\" }, " \
+			"\"filterRule\": { " \
+				"\"description\": \"JQ formatted filter to apply (applicable if applyFilter is True)\", " \
+				"\"type\": \"string\", \"default\": \".[]\" }"
+
+#define HTTP_NORTH_PLUGIN_DESC "\"plugin\": {\"description\": \"HTTP North C Plugin\", " \
+				"\"type\": \"string\", \"default\": \"" PLUGIN_NAME " \", \"readonly\": \"true\"}"
+
+#define PLUGIN_DEFAULT_CONFIG_INFO "{" HTTP_NORTH_PLUGIN_DESC ", " PLUGIN_DEFAULT_CONFIG "}"
 
 /**
  * The HTTP north plugin interface
@@ -47,13 +54,20 @@ extern "C" {
  * The C API plugin information structure
  */
 static PLUGIN_INFORMATION info = {
-	"http",				// Name
+	PLUGIN_NAME,			// Name
 	"1.0.0",			// Version
 	0,				// Flags
 	PLUGIN_TYPE_NORTH,		// Type
 	"1.0.0",			// Interface version
-	PLUGIN_DEFAULT_CONFIG		// Configuration
+	PLUGIN_DEFAULT_CONFIG_INFO	// Configuration
 };
+
+static const map<const string, const string> plugin_configuration = {
+					{
+						"PLUGIN",
+						string(PLUGIN_DEFAULT_CONFIG)
+					}
+				 };
 
 /**
  * HTTP Server connector info
@@ -79,19 +93,29 @@ PLUGIN_INFORMATION *plugin_info()
 }
 
 /**
+ * Return default plugin configuration:
+ * plugin specific and types_id
+ */
+const map<const string, const string>& plugin_config()
+{
+	return plugin_configuration;
+}
+
+/**
  * Initialise the plugin with configuration.
  *
  * This funcion is called to get the plugin handle.
  */
-PLUGIN_HANDLE plugin_init(const ConfigCategory* configData)
+PLUGIN_HANDLE plugin_init(map<string, string>& configData)
 {
 	Logger::getLogger()->info("http-north C plugin: %s", __FUNCTION__);
 
 	/**
 	 * Handle the HTTP(S) parameters here
 	 */
-	string url = configData->getValue("URL");
-	unsigned int timeout = atoi(configData->getValue("HttpTimeout").c_str());
+	ConfigCategory configCategory("cfg", configData["GLOBAL_CONFIGURATION"]);
+	string url = configCategory.getValue("URL");
+	unsigned int timeout = atoi(configCategory.getValue("HttpTimeout").c_str());
 
 	/**
 	 * Extract host, port, path from URL
