@@ -62,13 +62,6 @@ static PLUGIN_INFORMATION info = {
 	PLUGIN_DEFAULT_CONFIG_INFO	// Configuration
 };
 
-static const map<const string, const string> plugin_configuration = {
-					{
-						"PLUGIN",
-						string(PLUGIN_DEFAULT_CONFIG)
-					}
-				 };
-
 /**
  * HTTP Server connector info
  */
@@ -93,29 +86,19 @@ PLUGIN_INFORMATION *plugin_info()
 }
 
 /**
- * Return default plugin configuration:
- * plugin specific and types_id
- */
-const map<const string, const string>& plugin_config()
-{
-	return plugin_configuration;
-}
-
-/**
  * Initialise the plugin with configuration.
  *
- * This funcion is called to get the plugin handle.
+ * This function is called to get the plugin handle.
  */
-PLUGIN_HANDLE plugin_init(map<string, string>& configData)
+PLUGIN_HANDLE plugin_init(ConfigCategory* configData)
 {
 	Logger::getLogger()->info("http-north C plugin: %s", __FUNCTION__);
 
 	/**
 	 * Handle the HTTP(S) parameters here
 	 */
-	ConfigCategory configCategory("cfg", configData["GLOBAL_CONFIGURATION"]);
-	string url = configCategory.getValue("URL");
-	unsigned int timeout = atoi(configCategory.getValue("HttpTimeout").c_str());
+	string url = configData->getValue("URL");
+	unsigned int timeout = atoi(configData->getValue("HttpTimeout").c_str());
 
 	/**
 	 * Extract host, port, path from URL
