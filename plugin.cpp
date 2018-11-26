@@ -27,6 +27,11 @@ using namespace std;
 				"\"description\": \"The URL of the HTTP Connector to send data to\", " \
 				"\"type\": \"string\", " \
 				"\"default\": \"http://localhost:6683/sensor-reading\" }, " \
+			"\"source\": {" \
+				"\"description\": \"Defines the source of the data to be sent on the stream, " \
+				"this may be one of either readings, statistics or audit.\", \"type\": \"enumeration\", " \
+				"\"default\": \"readings\", "\
+				"\"options\": [\"readings\", \"statistics\"]}, " \
 			"\"HttpTimeout\": { " \
 				"\"description\": \"Timeout in seconds for the HTTP operations with the HTTP Connector Relay\", " \
 				"\"type\": \"integer\", \"default\": \"10\" }, " \
