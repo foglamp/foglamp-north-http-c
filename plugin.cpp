@@ -26,24 +26,24 @@ using namespace std;
 #define PLUGIN_DEFAULT_CONFIG "\"URL\": { " \
 				"\"description\": \"The URL of the HTTP Connector to send data to\", " \
 				"\"type\": \"string\", " \
-				"\"default\": \"http://localhost:6683/sensor-reading\" }, " \
+				"\"default\": \"http://localhost:6683/sensor-reading\", \"order\": \"1\", \"displayName\": \"URL\" }, " \
 			"\"source\": {" \
 				"\"description\": \"Defines the source of the data to be sent on the stream, " \
 				"this may be one of either readings, statistics or audit.\", \"type\": \"enumeration\", " \
 				"\"default\": \"readings\", "\
-				"\"options\": [\"readings\", \"statistics\"]}, " \
+				"\"options\": [\"readings\", \"statistics\"], \"order\": \"2\", \"displayName\": \"Source\"}, " \
 			"\"HttpTimeout\": { " \
 				"\"description\": \"Timeout in seconds for the HTTP operations with the HTTP Connector Relay\", " \
-				"\"type\": \"integer\", \"default\": \"10\" }, " \
+				"\"type\": \"integer\", \"default\": \"10\", \"order\": \"4\", \"displayName\": \"Http Timeout (in seconds)\"}, " \
 			"\"verifySSL\": { " \
         			"\"description\": \"Verify SSL certificate\", " \
-				"\"type\": \"boolean\", \"default\": \"False\" }, " \
+				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"3\", \"displayName\": \"Verify SSL\"}, " \
 			"\"applyFilter\": { " \
         			"\"description\": \"Whether to apply filter before processing the data\", " \
-				"\"type\": \"boolean\", \"default\": \"False\" }, " \
+				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"5\", \"displayName\": \"Apply Filter\"}, " \
 			"\"filterRule\": { " \
 				"\"description\": \"JQ formatted filter to apply (applicable if applyFilter is True)\", " \
-				"\"type\": \"string\", \"default\": \".[]\" }"
+				"\"type\": \"string\", \"default\": \".[]\", \"order\": \"6\", \"displayName\": \"Filter Rule\"}"
 
 #define HTTP_NORTH_PLUGIN_DESC "\"plugin\": {\"description\": \"HTTP North C Plugin\", " \
 				"\"type\": \"string\", \"default\": \"" PLUGIN_NAME "\", \"readonly\": \"true\"}"
