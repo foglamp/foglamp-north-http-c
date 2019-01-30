@@ -33,18 +33,26 @@ using namespace std;
 				"this may be one of either readings, statistics or audit.\", \"type\": \"enumeration\", " \
 				"\"default\": \"readings\", "\
 				"\"options\": [\"readings\", \"statistics\"], \"order\": \"2\", \"displayName\": \"Source\"}, " \
+			"\"retrySleepTime\": { " \
+        			"\"description\": \"Seconds between each retry for the communication, " \
+                       		"NOTE : the time is doubled at each attempt.\", \"type\": \"integer\", \"default\": \"1\", " \
+				"\"order\": \"9\", \"displayName\" : \"Sleep Time Retry\" }, " \
+			"\"maxRetry\": { " \
+				"\"description\": \"Max number of retries for the communication\", " \
+				"\"type\": \"integer\", \"default\": \"3\", " \
+				"\"order\": \"10\", \"displayName\" : \"Maximum Retry\" }, " \
 			"\"HttpTimeout\": { " \
 				"\"description\": \"Timeout in seconds for the HTTP operations with the HTTP Connector Relay\", " \
-				"\"type\": \"integer\", \"default\": \"10\", \"order\": \"4\", \"displayName\": \"Http Timeout (in seconds)\"}, " \
+				"\"type\": \"integer\", \"default\": \"10\", \"order\": \"13\", \"displayName\": \"Http Timeout (in seconds)\"}, " \
 			"\"verifySSL\": { " \
         			"\"description\": \"Verify SSL certificate\", " \
-				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"3\", \"displayName\": \"Verify SSL\"}, " \
+				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"14\", \"displayName\": \"Verify SSL\"}, " \
 			"\"applyFilter\": { " \
         			"\"description\": \"Whether to apply filter before processing the data\", " \
-				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"5\", \"displayName\": \"Apply Filter\"}, " \
+				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"15\", \"displayName\": \"Apply Filter\"}, " \
 			"\"filterRule\": { " \
 				"\"description\": \"JQ formatted filter to apply (applicable if applyFilter is True)\", " \
-				"\"type\": \"string\", \"default\": \".[]\", \"order\": \"6\", \"displayName\": \"Filter Rule\"}"
+				"\"type\": \"string\", \"default\": \".[]\", \"order\": \"16\", \"displayName\": \"Filter Rule\"}"
 
 #define HTTP_NORTH_PLUGIN_DESC "\"plugin\": {\"description\": \"HTTP North C Plugin\", " \
 				"\"type\": \"string\", \"default\": \"" PLUGIN_NAME "\", \"readonly\": \"true\"}"
@@ -74,8 +82,8 @@ static PLUGIN_INFORMATION info = {
 typedef struct
 {
 	string		proto;
-	HttpSender	*sender;  // HttpSender is the base class for SimpleHttp and SimpleHttp classes
-				  // and sendRequest is a virtual method of HttpSender class
+	HttpSender	*sender;        // HttpSender is the base class for SimpleHttp and SimpleHttp classes
+				        // and sendRequest is a virtual method of HttpSender class
 	string		path;
 } CONNECTOR_INFO;
 
@@ -104,6 +112,8 @@ PLUGIN_HANDLE plugin_init(ConfigCategory* configData)
 	 * Handle the HTTP(S) parameters here
 	 */
 	string url = configData->getValue("URL");
+	unsigned int retrySleepTime = atoi(configData->getValue("retrySleepTime").c_str());
+	unsigned int maxRetry = atoi(configData->getValue("maxRetry").c_str());
 	unsigned int timeout = atoi(configData->getValue("HttpTimeout").c_str());
 
 	/**
@@ -128,9 +138,17 @@ PLUGIN_HANDLE plugin_init(ConfigCategory* configData)
 
 	CONNECTOR_INFO *connector_info = new CONNECTOR_INFO;
 	if (protocol == string("http"))
-		connector_info->sender = new SimpleHttp(hostAndPort, timeout, timeout);
+		connector_info->sender = new SimpleHttp(hostAndPort,
+							timeout,
+							timeout,
+							retrySleepTime,
+							maxRetry);
 	else if (protocol == string("https"))
-		connector_info->sender = new SimpleHttps(hostAndPort, timeout, timeout);
+		connector_info->sender = new SimpleHttps(hostAndPort,
+							 timeout,
+							 timeout,
+							 retrySleepTime,
+							 maxRetry);
 	else
 	{
 		Logger::getLogger()->error("Didn't find http/https prefix in URL='%s', cannot proceed", url.c_str());
