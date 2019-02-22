@@ -15,28 +15,49 @@
 #include "simple_http.h"
 #include "reading.h"
 #include "config_category.h"
+#include "version.h"
 
 using namespace std;
+
+#define PLUGIN_NAME "HttpNorthC"
 
 /**
  * Plugin specific default configuration
  */
-#define PLUGIN_DEFAULT_CONFIG "{ " \
-			"\"plugin\": { " \
-				"\"description\": \"HTTP North C Plugin\", " \
-				"\"type\": \"string\", " \
-				"\"default\": \"http-north\" }, " \
-			"\"URL\": { " \
+#define PLUGIN_DEFAULT_CONFIG "\"URL\": { " \
 				"\"description\": \"The URL of the HTTP Connector to send data to\", " \
 				"\"type\": \"string\", " \
-				"\"default\": \"http://localhost:6683/sensor-reading\" }, " \
+				"\"default\": \"http://localhost:6683/sensor-reading\", \"order\": \"1\", \"displayName\": \"URL\" }, " \
+			"\"source\": {" \
+				"\"description\": \"Defines the source of the data to be sent on the stream, " \
+				"this may be one of either readings, statistics or audit.\", \"type\": \"enumeration\", " \
+				"\"default\": \"readings\", "\
+				"\"options\": [\"readings\", \"statistics\"], \"order\": \"2\", \"displayName\": \"Source\"}, " \
+			"\"retrySleepTime\": { " \
+        			"\"description\": \"Seconds between each retry for the communication, " \
+                       		"NOTE : the time is doubled at each attempt.\", \"type\": \"integer\", \"default\": \"1\", " \
+				"\"order\": \"9\", \"displayName\" : \"Sleep Time Retry\" }, " \
+			"\"maxRetry\": { " \
+				"\"description\": \"Max number of retries for the communication\", " \
+				"\"type\": \"integer\", \"default\": \"3\", " \
+				"\"order\": \"10\", \"displayName\" : \"Maximum Retry\" }, " \
 			"\"HttpTimeout\": { " \
 				"\"description\": \"Timeout in seconds for the HTTP operations with the HTTP Connector Relay\", " \
-				"\"type\": \"integer\", \"default\": \"10\" }, " \
+				"\"type\": \"integer\", \"default\": \"10\", \"order\": \"13\", \"displayName\": \"Http Timeout (in seconds)\"}, " \
 			"\"verifySSL\": { " \
         			"\"description\": \"Verify SSL certificate\", " \
-				"\"type\": \"boolean\", \"default\": \"False\" } " \
-		" }"
+				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"14\", \"displayName\": \"Verify SSL\"}, " \
+			"\"applyFilter\": { " \
+        			"\"description\": \"Whether to apply filter before processing the data\", " \
+				"\"type\": \"boolean\", \"default\": \"False\", \"order\": \"15\", \"displayName\": \"Apply Filter\"}, " \
+			"\"filterRule\": { " \
+				"\"description\": \"JQ formatted filter to apply (applicable if applyFilter is True)\", " \
+				"\"type\": \"string\", \"default\": \".[]\", \"order\": \"16\", \"displayName\": \"Filter Rule\"}"
+
+#define HTTP_NORTH_PLUGIN_DESC "\"plugin\": {\"description\": \"HTTP North C Plugin\", " \
+				"\"type\": \"string\", \"default\": \"" PLUGIN_NAME "\", \"readonly\": \"true\"}"
+
+#define PLUGIN_DEFAULT_CONFIG_INFO "{" HTTP_NORTH_PLUGIN_DESC ", " PLUGIN_DEFAULT_CONFIG "}"
 
 /**
  * The HTTP north plugin interface
@@ -47,12 +68,12 @@ extern "C" {
  * The C API plugin information structure
  */
 static PLUGIN_INFORMATION info = {
-	"http",				// Name
-	"1.0.0",			// Version
+	PLUGIN_NAME,			// Name
+	VERSION,			// Version
 	0,				// Flags
 	PLUGIN_TYPE_NORTH,		// Type
 	"1.0.0",			// Interface version
-	PLUGIN_DEFAULT_CONFIG		// Configuration
+	PLUGIN_DEFAULT_CONFIG_INFO	// Configuration
 };
 
 /**
@@ -61,8 +82,8 @@ static PLUGIN_INFORMATION info = {
 typedef struct
 {
 	string		proto;
-	HttpSender	*sender;  // HttpSender is the base class for SimpleHttp and SimpleHttp classes
-				  // and sendRequest is a virtual method of HttpSender class
+	HttpSender	*sender;        // HttpSender is the base class for SimpleHttp and SimpleHttp classes
+				        // and sendRequest is a virtual method of HttpSender class
 	string		path;
 } CONNECTOR_INFO;
 
@@ -81,9 +102,9 @@ PLUGIN_INFORMATION *plugin_info()
 /**
  * Initialise the plugin with configuration.
  *
- * This funcion is called to get the plugin handle.
+ * This function is called to get the plugin handle.
  */
-PLUGIN_HANDLE plugin_init(const ConfigCategory* configData)
+PLUGIN_HANDLE plugin_init(ConfigCategory* configData)
 {
 	Logger::getLogger()->info("http-north C plugin: %s", __FUNCTION__);
 
@@ -91,6 +112,8 @@ PLUGIN_HANDLE plugin_init(const ConfigCategory* configData)
 	 * Handle the HTTP(S) parameters here
 	 */
 	string url = configData->getValue("URL");
+	unsigned int retrySleepTime = atoi(configData->getValue("retrySleepTime").c_str());
+	unsigned int maxRetry = atoi(configData->getValue("maxRetry").c_str());
 	unsigned int timeout = atoi(configData->getValue("HttpTimeout").c_str());
 
 	/**
@@ -115,9 +138,17 @@ PLUGIN_HANDLE plugin_init(const ConfigCategory* configData)
 
 	CONNECTOR_INFO *connector_info = new CONNECTOR_INFO;
 	if (protocol == string("http"))
-		connector_info->sender = new SimpleHttp(hostAndPort, timeout, timeout);
+		connector_info->sender = new SimpleHttp(hostAndPort,
+							timeout,
+							timeout,
+							retrySleepTime,
+							maxRetry);
 	else if (protocol == string("https"))
-		connector_info->sender = new SimpleHttps(hostAndPort, timeout, timeout);
+		connector_info->sender = new SimpleHttps(hostAndPort,
+							 timeout,
+							 timeout,
+							 retrySleepTime,
+							 maxRetry);
 	else
 	{
 		Logger::getLogger()->error("Didn't find http/https prefix in URL='%s', cannot proceed", url.c_str());
