@@ -193,7 +193,7 @@ const string& getReadingString(const Reading& reading)
 	string &m_value = *value;
 
 	// Convert reading data into JSON string
-	m_value.append("{\"timestamp\" : \"" + reading.getAssetDateTime(Reading::FMT_STANDARD) + "Z" + "\"");
+	m_value.append("{\"timestamp\" : \"" + reading.getAssetDateUserTime(Reading::FMT_STANDARD) + "Z" + "\"");
 	m_value.append(",\"asset\" : \"" + reading.getAssetName() + "\"");
 	m_value.append(",\"key\" : \"" + reading.getUuid() + "\"");
 	m_value.append(",\"readings\" : {");
