@@ -1,8 +1,8 @@
 # A set of variables that define how we package this repository
 #
-plugin_name=http-c
+plugin_name=httpc
 plugin_type=north
-plugin_install_dirname=http-c
+plugin_install_dirname=HttpNorthC
 
 # Now build up the runtime requirements list. This has 3 components
 #   1. Generic packages we depend on in all architectures and package managers
