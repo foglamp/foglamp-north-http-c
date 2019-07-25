@@ -19,7 +19,7 @@
 
 using namespace std;
 
-#define PLUGIN_NAME "HttpNorthC"
+#define PLUGIN_NAME "httpc"
 
 /**
  * Plugin specific default configuration
